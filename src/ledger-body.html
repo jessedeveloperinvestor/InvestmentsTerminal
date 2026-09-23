@@ -1,0 +1,128 @@
+
+<div id="app">
+<aside class="sidebar">
+<div class="brand">Ledger<span>.</span></div>
+<nav>
+<button class="nav-item active" data-view="dashboard">Dashboard</button>
+<button class="nav-item" data-view="plan">Trading Plan</button>
+<button class="nav-item" data-view="journal">Journal</button>
+<button class="nav-item" data-view="portfolio">Portfolio</button>
+<button class="nav-item" data-view="analytics">Analytics</button>
+<button class="nav-item" data-view="settings">Settings</button>
+</nav>
+<div class="sidebar-footer"><span id="save-status" class="ok">Loaded from browser storage</span><span id="clock" class="mono"></span></div>
+</aside>
+<main>
+
+<section id="view-dashboard" class="view active">
+<div class="view-header"><div><h1>Watchlist</h1><div class="subtle" id="last-updated">Loading market data...</div></div><button class="btn" id="refresh-btn">Refresh prices</button></div>
+<div id="api-status" class="status-box">Connecting to Twelve Data...</div>
+<div id="asset-list"></div>
+</section>
+
+<section id="view-plan" class="view">
+<div class="view-header"><div><h1>Trading Plan</h1><div class="subtle">Your rules and trading framework.</div></div><div><button class="btn ghost" id="plan-edit-btn">Edit</button><button class="btn primary" id="plan-save-btn" hidden>Save plan</button></div></div>
+<div id="plan-render"></div>
+<textarea id="plan-editor" class="plan-editor" hidden></textarea>
+</section>
+
+<section id="view-journal" class="view">
+<div class="view-header"><div><h1>Journal</h1><div class="subtle">Every position, why you took it, and how it went.</div></div><button class="btn primary" id="new-entry-btn">New entry</button></div>
+<div class="filter-row" id="type-filter">
+<button class="filter-chip active" data-filter="all">All</button><button class="filter-chip" data-filter="day">Day trades</button><button class="filter-chip" data-filter="swing">Swing trades</button><button class="filter-chip" data-filter="holding">Holding</button><button class="filter-chip" data-filter="open">Open only</button>
+</div><div id="journal-list"></div>
+</section>
+
+
+<section id="view-portfolio" class="view">
+<div class="view-header">
+  <div><h1>Portfolio</h1><div class="subtle">Track your average purchase price, shares held and current unrealized return.</div></div>
+  <button class="btn primary" id="new-position-btn">Add position</button>
+</div>
+<div id="portfolio-summary" class="status-box">Loading portfolio...</div>
+<div id="portfolio-list"></div>
+</section>
+
+<section id="view-analytics" class="view">
+<div class="view-header">
+  <div><h1>Journal Analytics</h1><div class="subtle">Charts and statistics calculated from your journal entries.</div></div>
+  <button class="btn" id="refresh-analytics-btn">Refresh analytics</button>
+</div>
+<div id="analytics-summary" class="status-box"></div>
+<div class="analytics-grid">
+  <div class="analytics-card"><h3>Profit / Loss by Trade</h3><div class="analytics-chart"><canvas id="pl-chart"></canvas></div></div>
+  <div class="analytics-card"><h3>Cumulative P/L</h3><div class="analytics-chart"><canvas id="cumulative-chart"></canvas></div></div>
+  <div class="analytics-card"><h3>Win vs Loss</h3><div class="analytics-chart"><canvas id="winloss-chart"></canvas></div></div>
+  <div class="analytics-card"><h3>P/L by Trade Type</h3><div class="analytics-chart"><canvas id="type-chart"></canvas></div></div>
+  <div class="analytics-card"><h3>Portfolio Allocation</h3><div class="analytics-chart"><canvas id="portfolio-alloc-chart"></canvas></div></div>
+</div>
+</section>
+
+<section id="view-settings" class="view">
+<div class="view-header"><div><h1>Settings</h1><div class="subtle">Manage your watchlist and data.</div></div></div>
+
+<div class="settings-block">
+<h3>Favorite assets</h3><div id="fav-list"></div>
+<form class="fav-form" id="fav-form">
+<select id="fav-source"><option value="stocks">Stock / index / forex (Twelve Data)</option><option value="crypto">Crypto (CoinGecko)</option></select>
+<select id="fav-exchange"><option value="">Global / US markets</option><option value="BVMF">B3 / Bovespa (BVMF)</option></select>
+<input type="text" id="fav-id" placeholder="Symbol (e.g. AAPL)" required><input type="text" id="fav-symbol" placeholder="Symbol (e.g. AAPL)" required><input type="text" id="fav-name" placeholder="Display name (e.g. Apple)" required>
+<button class="btn" type="submit">Add asset</button>
+</form>
+<div class="subtle" id="fav-hint">Use symbols such as AAPL, MSFT, NVDA, SPY, EUR/USD, XAU/USD (via Twelve Data), or B3 tickers such as BRAP4, PETR4, VALE3 and ITUB4 (via brapi.dev — select "B3 / Bovespa (BVMF)"). PETR4, VALE3, MGLU3 and ITUB4 work free with no token; other B3 tickers need a free brapi.dev token, set below.</div>
+</div>
+
+<div class="settings-block">
+<h3>Twelve Data</h3>
+<div class="subtle" style="margin-bottom:12px">The API key is preconfigured for this local app. You can replace it here if necessary. Note: Twelve Data's free plan only covers US/global markets, not B3/Brazil — see the brapi.dev block below for that.</div>
+<div class="fav-form"><input type="password" id="twelvedata-key" placeholder="Twelve Data API key"><button class="btn" id="save-key-btn" type="button">Save key</button><button class="btn ghost" id="test-key-btn" type="button">Test connection</button></div>
+<div class="subtle" id="key-status"></div>
+</div>
+
+<div class="settings-block">
+<h3>brapi.dev (B3 / Bovespa)</h3>
+<div class="subtle" style="margin-bottom:12px">Brazilian stocks are fetched from brapi.dev, which is free for B3 tickers. PETR4, VALE3, MGLU3 and ITUB4 work with no token. Any other B3 ticker (like BRAP4) needs a free token — grab one at <span class="mono">brapi.dev/dashboard</span> and paste it here.</div>
+<div class="fav-form"><input type="password" id="brapi-key" placeholder="brapi.dev token (optional)"><button class="btn" id="save-brapi-key-btn" type="button">Save token</button><button class="btn ghost" id="test-brapi-key-btn" type="button">Test connection</button></div>
+<div class="subtle" id="brapi-key-status"></div>
+</div>
+
+<div class="settings-block">
+<h3>Data file</h3><div class="subtle" style="margin-bottom:12px">Your watchlist, trading plan and journal are stored in this browser. Export/import JSON for backup.</div>
+<div class="file-actions"><button class="btn" id="export-btn">Export JSON</button><button class="btn" id="import-btn">Import JSON</button><input type="file" id="import-input" accept="application/json" hidden><button class="btn danger" id="reset-btn">Reset demo data</button></div>
+</div>
+</section>
+</main>
+</div>
+
+
+<div class="modal" id="position-modal" hidden><div class="modal-content">
+<button class="modal-close" id="position-close">&times;</button>
+<h2 id="position-modal-title" style="margin:0 0 18px;font-size:18px">Add portfolio position</h2>
+<form id="position-form">
+<input type="hidden" id="position-id">
+<div class="field-row"><div class="field"><label>Symbol</label><input id="position-symbol" placeholder="e.g. AAPL or BRAP4" required></div><div class="field"><label>Asset name</label><input id="position-name" placeholder="e.g. Apple Inc." required></div></div>
+<div class="field-row"><div class="field"><label>Market</label><select id="position-exchange"><option value="">Global / US markets</option><option value="BVMF">B3 / Bovespa (BVMF)</option></select></div><div class="field"></div></div>
+<div class="field-row"><div class="field"><label>Average purchase price</label><input type="number" step="any" min="0" id="position-average" required></div><div class="field"><label>Shares / units bought</label><input type="number" step="any" min="0" id="position-shares" required></div></div>
+<div class="field"><label>Notes</label><textarea id="position-notes" placeholder="Optional notes..."></textarea></div>
+<div class="modal-actions"><button type="button" class="btn" id="position-cancel">Cancel</button><button type="submit" class="btn primary">Save position</button></div>
+</form></div></div>
+
+<div class="modal" id="chart-modal" hidden><div class="modal-content">
+<button class="modal-close" id="chart-close">&times;</button><h2 id="chart-title" style="margin:0 0 4px;font-size:18px"></h2><div class="chart-price-now num" id="chart-price-now">—</div>
+<div class="range-toggle" id="range-toggle"><button class="range-btn" data-days="1">1D</button><button class="range-btn" data-days="7">7D</button><button class="range-btn active" data-days="30">30D</button><button class="range-btn" data-days="365">1Y</button></div>
+<div id="price-chart-wrap"><canvas id="price-chart"></canvas></div><div class="subtle" id="chart-note"></div>
+</div></div>
+
+<div class="modal" id="entry-modal" hidden><div class="modal-content">
+<button class="modal-close" id="entry-close">&times;</button><h2 id="entry-modal-title" style="margin:0 0 18px;font-size:18px">New journal entry</h2>
+<form id="entry-form"><input type="hidden" id="entry-id">
+<div class="field-row"><div class="field"><label>Trade type</label><select id="entry-type"><option value="day">Day trade</option><option value="swing">Swing trade</option><option value="holding">Holding position</option></select></div><div class="field"><label>Direction</label><select id="entry-direction"><option value="long">Long</option><option value="short">Short</option></select></div></div>
+<div class="field-row"><div class="field"><label>Asset / symbol</label><input id="entry-asset" placeholder="e.g. AAPL" required></div><div class="field"><label>Status</label><select id="entry-status"><option value="open">Open</option><option value="closed">Closed</option></select></div></div>
+<div class="field-row"><div class="field"><label>Entry date</label><input type="datetime-local" id="entry-entrydate"></div><div class="field"><label>Entry price</label><input type="number" step="any" id="entry-entryprice" required></div></div>
+<div class="field-row"><div class="field"><label>Exit date</label><input type="datetime-local" id="entry-exitdate"></div><div class="field"><label>Exit price</label><input type="number" step="any" id="entry-exitprice"></div></div>
+<div class="field-row"><div class="field"><label>Position size (units)</label><input type="number" step="any" id="entry-size"></div><div class="field"><label>Risk / reward</label><input id="entry-rr" placeholder="e.g. 1:3"></div></div>
+<div class="field-row"><div class="field"><label>Stop loss</label><input type="number" step="any" id="entry-stop"></div><div class="field"><label>Take profit</label><input type="number" step="any" id="entry-target"></div></div>
+<div class="field"><label>Notes</label><textarea id="entry-notes" placeholder="Setup, thesis, execution, lessons..."></textarea></div>
+<div class="modal-actions"><button type="button" class="btn" id="entry-cancel">Cancel</button><button type="submit" class="btn primary">Save entry</button></div>
+</form></div></div>
+
